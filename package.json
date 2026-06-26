@@ -1,6 +1,6 @@
 {
   "name": "@unified-ukraine-reference/api-seed",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha",
   "description": "Seed script and data population utility for the Unified Ukraine Reference database using Drizzle ORM.",
   "private": true,
   "license": "MIT",
