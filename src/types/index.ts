@@ -1,16 +1,15 @@
 export const LOCATION_CATEGORY = {
-  O: "O",
-  K: "K",
-  P: "P",
-  H: "H",
-  M: "M",
-  X: "X",
-  C: "C",
-  B: "B"
+  O: 'O',
+  K: 'K',
+  P: 'P',
+  H: 'H',
+  M: 'M',
+  X: 'X',
+  C: 'C',
+  B: 'B',
 } as const;
 
-export type LocationCategory =
-  (typeof LOCATION_CATEGORY)[keyof typeof LOCATION_CATEGORY];
+export type LocationCategory = (typeof LOCATION_CATEGORY)[keyof typeof LOCATION_CATEGORY];
 
 export interface LocalizedName {
   ua: string;

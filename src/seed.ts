@@ -1,22 +1,22 @@
-import "dotenv/config";
+import 'dotenv/config';
 
-import { drizzle } from "drizzle-orm/node-postgres";
-import { sql, Table } from "drizzle-orm";
-import { Pool } from "pg";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { sql, Table } from 'drizzle-orm';
+import { Pool } from 'pg';
 
-import type { PgInsertOnConflictDoUpdateConfig } from "drizzle-orm/pg-core";
+import type { PgInsertOnConflictDoUpdateConfig } from 'drizzle-orm/pg-core';
 
-import { locations, locationTypes } from "./db/schema";
-import { LT, K, O, P, H, MXC, B } from "./seeds";
+import { locations, locationTypes } from './db/schema';
+import { LT, K, O, P, H, MXC, B } from './seeds';
 
 const CHUNK_SIZE = 250;
 
-const pool = new Pool({ connectionString: process.env["DATABASE_URL"] });
+const pool = new Pool({ connectionString: process.env['DATABASE_URL'] });
 const db = drizzle(pool);
 
 async function insertInChunks<TTable extends Table>(
   table: TTable,
-  data: TTable["$inferInsert"][],
+  data: TTable['$inferInsert'][],
   onConflictConfig: PgInsertOnConflictDoUpdateConfig<any>
 ): Promise<void> {
   if (!data || data.length === 0) return;
@@ -28,9 +28,7 @@ async function insertInChunks<TTable extends Table>(
   }
 }
 
-async function seedLocationTypeStep(
-  data: (typeof locationTypes.$inferInsert)[]
-): Promise<void> {
+async function seedLocationTypeStep(data: (typeof locationTypes.$inferInsert)[]): Promise<void> {
   if (!data || data.length === 0) return;
 
   console.log(`Seeding locations-types... Total: ${LT.length}`);
@@ -40,11 +38,11 @@ async function seedLocationTypeStep(
     set: {
       nameUa: sql`excluded.name_ua`,
       nameEn: sql`excluded.name_en`,
-      level: sql`excluded.level`
-    }
+      level: sql`excluded.level`,
+    },
   });
 
-  console.log("Seeding locations-types done.");
+  console.log('Seeding locations-types done.');
 }
 
 async function seedLocationStep(
@@ -61,8 +59,8 @@ async function seedLocationStep(
       nameUa: sql`excluded.name_ua`,
       nameEn: sql`excluded.name_en`,
       categoryCode: sql`excluded.category_code`,
-      parentCode: sql`excluded.parent_code`
-    }
+      parentCode: sql`excluded.parent_code`,
+    },
   });
 
   console.log(`Seeding locations[${stepName}] done.`);
@@ -72,14 +70,14 @@ async function seed(): Promise<void> {
   console.log(`=== Seeding start (Chunk Size < ${CHUNK_SIZE} rows) ===`);
 
   await seedLocationTypeStep(LT);
-  await seedLocationStep("K", K);
-  await seedLocationStep("O", O);
-  await seedLocationStep("P", P);
-  await seedLocationStep("H", H);
-  await seedLocationStep("MXC", MXC);
-  await seedLocationStep("B", B);
+  await seedLocationStep('K', K);
+  await seedLocationStep('O', O);
+  await seedLocationStep('P', P);
+  await seedLocationStep('H', H);
+  await seedLocationStep('MXC', MXC);
+  await seedLocationStep('B', B);
 
-  console.log("=== Seeding finished successfully! ===");
+  console.log('=== Seeding finished successfully! ===');
   await pool.end();
 }
 

@@ -11,25 +11,25 @@
     "JSONC": { "formatter": "prettier" },
 
     "JavaScript": {
-      "code_actions_on_format": { "source.fixAll.eslint": true },
+      "code_actions_on_format": { "source.fixAll.eslint": true }
     },
     "TypeScript": {
-      "code_actions_on_format": { "source.fixAll.eslint": true },
-    },
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    }
   },
   "lsp": {
     "vtsls": {
       "settings": {
         "typescript": { "tsserver": { "maxTsServerMemory": 8092 } },
-        "javascript": { "tsserver": { "maxTsServerMemory": 8092 } },
-      },
+        "javascript": { "tsserver": { "maxTsServerMemory": 8092 } }
+      }
     },
     "eslint": {
       "settings": {
         "problems": {
-          "shortenToSingleLine": true,
-        },
-      },
-    },
-  },
+          "shortenToSingleLine": true
+        }
+      }
+    }
+  }
 }
