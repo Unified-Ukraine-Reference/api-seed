@@ -10,7 +10,7 @@
     "db:migrate": "drizzle-kit migrate",
     "build": "tsdown",
     "build:watch": "tsdown --watch",
-    "seed": "node dist/seed.mjs"
+    "seed": "npm run build && node dist/seed.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
