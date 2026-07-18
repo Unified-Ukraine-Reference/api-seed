@@ -1,25 +1,39 @@
 import 'dotenv/config';
 
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { sql, Table } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { Pool } from 'pg';
 
-import type { PgInsertOnConflictDoUpdateConfig } from 'drizzle-orm/pg-core';
+import type { IndexColumn, PgTable, PgUpdateSetSource } from 'drizzle-orm/pg-core';
+
+import { Data } from '@unified-ukraine-reference/api-generator';
 
 import { locations, locationTypes } from './db/schema';
-import { LT, K, O, P, H, MXC, B } from './seeds';
 
 const CHUNK_SIZE = 250;
 
 const pool = new Pool({ connectionString: process.env['DATABASE_URL'] });
 const db = drizzle(pool);
 
-async function insertInChunks<TTable extends Table>(
+const { categoryLocationData, katottgData } = await Data({
+  token: process.env['GITHUB_TOKEN'],
+  owner: process.env['GITHUB_OWNER'],
+  repo: process.env['GITHUB_REPO'],
+  tag: process.env['GITHUB_TAG'],
+});
+
+async function insertInChunks<TTable extends PgTable>(
   table: TTable,
   data: TTable['$inferInsert'][],
-  onConflictConfig: PgInsertOnConflictDoUpdateConfig<any>
+  onConflictConfig: {
+    target: IndexColumn | IndexColumn[];
+    set: PgUpdateSetSource<TTable>;
+  }
 ): Promise<void> {
-  if (!data || data.length === 0) return;
+  if (!data || data.length === 0) {
+    console.log('No data to seed.');
+    return;
+  }
 
   for (let i = 0; i < data.length; i += CHUNK_SIZE) {
     const chunk = data.slice(i, i + CHUNK_SIZE);
@@ -29,9 +43,7 @@ async function insertInChunks<TTable extends Table>(
 }
 
 async function seedLocationTypeStep(data: (typeof locationTypes.$inferInsert)[]): Promise<void> {
-  if (!data || data.length === 0) return;
-
-  console.log(`Seeding locations-types... Total: ${LT.length}`);
+  console.log(`Seeding locations-types... Total: ${data.length}`);
 
   await insertInChunks(locationTypes, data, {
     target: locationTypes.code,
@@ -45,37 +57,37 @@ async function seedLocationTypeStep(data: (typeof locationTypes.$inferInsert)[])
   console.log('Seeding locations-types done.');
 }
 
-async function seedLocationStep(
-  stepName: string,
-  data: (typeof locations.$inferInsert)[]
-): Promise<void> {
-  if (!data || data.length === 0) return;
+async function seedLocationStep(data: (typeof locations.$inferInsert)[]): Promise<void> {
+  console.log(`Seeding locations... Total: ${data.length}`);
 
-  console.log(`Seeding locations[${stepName}]... Total: ${data.length}`);
+  const withoutParent = data.map((row) => ({ ...row, parentCode: null }));
 
-  await insertInChunks(locations, data, {
+  console.log('Phase 1: inserting rows without parentCode...');
+  await insertInChunks(locations, withoutParent, {
     target: locations.code,
     set: {
       nameUa: sql`excluded.name_ua`,
       nameEn: sql`excluded.name_en`,
       categoryCode: sql`excluded.category_code`,
+    },
+  });
+
+  console.log('Phase 2: updating parentCode...');
+  await insertInChunks(locations, data, {
+    target: locations.code,
+    set: {
       parentCode: sql`excluded.parent_code`,
     },
   });
 
-  console.log(`Seeding locations[${stepName}] done.`);
+  console.log('Seeding locations done.');
 }
 
 async function seed(): Promise<void> {
   console.log(`=== Seeding start (Chunk Size < ${CHUNK_SIZE} rows) ===`);
 
-  await seedLocationTypeStep(LT);
-  await seedLocationStep('K', K);
-  await seedLocationStep('O', O);
-  await seedLocationStep('P', P);
-  await seedLocationStep('H', H);
-  await seedLocationStep('MXC', MXC);
-  await seedLocationStep('B', B);
+  await seedLocationTypeStep(categoryLocationData);
+  await seedLocationStep(katottgData);
 
   console.log('=== Seeding finished successfully! ===');
   await pool.end();
