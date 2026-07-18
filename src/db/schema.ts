@@ -5,65 +5,61 @@ import {
   text,
   timestamp,
   type AnyPgColumn,
-  index
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+  index,
+} from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
-export const locationTypes = pgTable("location_types", {
-  code: varchar("code", { length: 1 }).notNull().primaryKey(),
-  level: smallint("level"),
-  nameUa: text("name_ua").notNull(),
-  nameEn: text("name_en").notNull()
+export const locationTypes = pgTable('location_types', {
+  code: varchar('code', { length: 1 }).notNull().primaryKey(),
+  level: smallint('level'),
+  nameUa: text('name_ua').notNull(),
+  nameEn: text('name_en').notNull(),
 });
 
 export const locations = pgTable(
-  "locations",
+  'locations',
   {
-    code: varchar("code", { length: 19 }).notNull().primaryKey(),
-    nameUa: text("name_ua").notNull(),
-    nameEn: text("name_en").notNull(),
-    categoryCode: varchar("category_code", { length: 1 })
+    code: varchar('code', { length: 19 }).notNull().primaryKey(),
+    nameUa: text('name_ua').notNull(),
+    nameEn: text('name_en').notNull(),
+    categoryCode: varchar('category_code', { length: 1 })
       .notNull()
       .references(() => locationTypes.code),
-    parentCode: varchar("parent_code", { length: 19 }).references(
+    parentCode: varchar('parent_code', { length: 19 }).references(
       (): AnyPgColumn => locations.code,
       {
-        onDelete: "restrict",
-        onUpdate: "cascade"
+        onDelete: 'restrict',
+        onUpdate: 'cascade',
       }
     ),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index("locations_parent_idx").on(table.parentCode),
-    index("locations_category_idx").on(table.categoryCode)
+    index('locations_parent_idx').on(table.parentCode),
+    index('locations_category_idx').on(table.categoryCode),
   ]
 );
 
 export const locationsRelations = relations(locations, ({ one, many }) => ({
   category: one(locationTypes, {
     fields: [locations.categoryCode],
-    references: [locationTypes.code]
+    references: [locationTypes.code],
   }),
 
   parent: one(locations, {
     fields: [locations.parentCode],
     references: [locations.code],
-    relationName: "locationHierarchy"
+    relationName: 'locationHierarchy',
   }),
 
   children: many(locations, {
-    relationName: "locationHierarchy"
-  })
+    relationName: 'locationHierarchy',
+  }),
 }));
 
 export const locationTypesRelations = relations(locationTypes, ({ many }) => ({
-  locations: many(locations)
+  locations: many(locations),
 }));
 
 export type Location = typeof locations.$inferSelect;
